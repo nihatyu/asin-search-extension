@@ -1,90 +1,154 @@
-const ASINS = ["B0BH99KZ9Z", "B0923J4FJL", "B082Q1X6BB", "B07PDHHS3Y"]; // Örnek ASINS dizisi
+const ASINS = [
+  "B08FCP21DK",
+  "B08BG5F3R2",
+  "B086YXRGFY",
+  "B085Y47GVB",
+  "B083H1CYH4",
+  "B082Q1X6BB",
+  "B07ZSXTYK1",
+  "B07XGR8DN9",
+  "B07X6TVFC1",
+  "B07X24T57L",
+  "B07X1Y2PBQ",
+  "B07WM23GP3",
+  "B07PDHHS3Y",
+]; // Örnek ASINS dizisi
+
+// Local storage kontrol fonksiyonu
+function checkLocalStorage(key) {
+  return localStorage.getItem(key) !== null;
+}
+
+// ASINS array'ini local storage'e kaydetme
+if (!checkLocalStorage("ASINS")) {
+  localStorage.setItem("ASINS", JSON.stringify(ASINS));
+}
+
+// currentIndex'i local storage'e kaydetme
+if (!checkLocalStorage("currentIndex")) {
+  localStorage.setItem("currentIndex", 0);
+}
+
+// searchPerformed boolean'ını local storage'e kaydetme
+if (!checkLocalStorage("searchPerformed")) {
+  localStorage.setItem("searchPerformed", false);
+}
 
 // 5 saniye bekleyen fonksiyon
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Adımları gerçekleştiren fonksiyon
-async function processASINS() {
-  await wait(5000); // 5 saniye bekleyin
-  console.log("asinsfromlocalstoragedenönce");
-  let ASINSFromLocalStorage = JSON.parse(localStorage.getItem("ASINS")) || [];
-  let currentIndex = parseInt(localStorage.getItem("currentIndex")) || 0;
-  const searchPerformed = localStorage.getItem("searchPerformed") === "true";
-  console.log("asinsfromlocalstoragedenönce");
-  if (ASINSFromLocalStorage.length > 0) {
-    ASINS.splice(0, ASINSFromLocalStorage.length, ...ASINSFromLocalStorage);
+async function performSearch() {
+  // Local storage'den değerleri çekme
+  const storedASINS = JSON.parse(localStorage.getItem("ASINS"));
+  const currentIndex = parseInt(localStorage.getItem("currentIndex"));
+  const searchPerformed = JSON.parse(localStorage.getItem("searchPerformed"));
+
+  // currentIndex, array index sayısından büyükse programı durdurma
+  if (currentIndex >= storedASINS.length) {
+    return;
   }
-  console.log("asinsfromlocalstoragedenönce");
-  while (currentIndex < ASINS.length) {
-    if (!searchPerformed) {
-      console.log("asinsfromlocalstoragedenönce");
-      const input = document.querySelector(
-        "#main-content > form > div.card.card-body.mb-3 > div.row > div:nth-child(1) > input"
-      );
-      input.value = ASINS[currentIndex];
-      await wait(5000); // 5 saniye bekleyin
 
-      // İkinci adım
-      if (!localStorage.getItem("searchPerformed")) {
-        const button = document.querySelector(
-          "#main-content > form > div.card.card-body.mb-3 > div.d-flex.justify-content-between.align-items-end.mb-0.mt-3 > button"
-        );
-        button.click();
-        localStorage.setItem("searchPerformed", "true");
-        await wait(5000); // 5 saniye bekleyin
+  // currentIndex ile array içindeki index'in elemanını alma
+  const currentASIN = storedASINS[currentIndex];
 
-        // Üçüncü adım
-        if (localStorage.getItem("searchPerformed") === "true") {
-          const button2 = document.querySelector(
-            "#main-content > div.table-responsive.mb-3.card.card-body > table > tbody > tr > td:nth-child(9) > div > button"
-          );
-          button2.click();
-          await wait(5000); // 5 saniye bekleyin
+  // searchPerformed = false ise devam etme
+  if (!searchPerformed) {
+    // Sayfa içerisindeki input alanına currentASIN değerini yazma
+    const inputElement = document.querySelector(
+      "#main-content > form > div.card.card-body.mb-3 > div.row > div:nth-child(1) > input"
+    );
+    inputElement.value = currentASIN;
 
-          // Dördüncü adım
-          if (localStorage.getItem("searchPerformed") === "true") {
-            const button3 = document.querySelector(
-              "#main-content > div.table-responsive.mb-3.card.card-body > table > tbody > tr > td:nth-child(9) > div > div > button.dropdown-item.font-size-sm.text-danger.open-modal-button"
-            );
-            if (button3) {
-              button3.click();
-              await wait(5000); // 5 saniye bekleyin
+    await wait(5000); // 5 saniye bekletme
+  }
 
-              // Beşinci adım
-              if (localStorage.getItem("searchPerformed") === "true") {
-                const confirmationButton = document.querySelector(
-                  "#modal-confirmation-form > div.modal-footer > button.btn.btn-success.text-white"
-                );
-                confirmationButton.click();
-                localStorage.setItem("searchPerformed", "false");
-                await wait(5000); // 5 saniye bekleyin
-              } else {
-                break;
-              }
-            } else {
-              break;
-            }
-          } else {
-            break;
-          }
-        } else {
-          break;
-        }
-      } else {
-        break;
-      }
+  // searchPerformed = false ise işleme devam etme
+  if (!searchPerformed) {
+    // Sayfa içerisindeki butona tıklama
+    const buttonElement = document.querySelector(
+      "#main-content > form > div.card.card-body.mb-3 > div.d-flex.justify-content-between.align-items-end.mb-0.mt-3 > button"
+    );
+    buttonElement.click();
+
+    // searchPerformed değerini true olarak güncelleme
+    localStorage.setItem("searchPerformed", true);
+
+    await wait(5000); // 5 saniye bekletme
+  }
+
+  // searchPerformed = true ise işleme devam etme
+  if (searchPerformed) {
+    // Sayfa içerisindeki butona tıklama
+    const buttonElement = document.querySelector(
+      "#main-content > div.table-responsive.mb-3.card.card-body > table > tbody > tr > td:nth-child(9) > div > button"
+    );
+    if (buttonElement) {
+      buttonElement.click();
     } else {
-      break;
+      localStorage.setItem("searchPerformed", false);
+      // Yeni değeri bir artır
+      const newCurrentIndex = currentIndex + 1;
+
+      // Yeni değeri localStorage'e kaydet
+      localStorage.setItem("currentIndex", newCurrentIndex.toString());
+      location.reload();
+      return;
     }
 
-    currentIndex++;
-    localStorage.setItem("currentIndex", currentIndex.toString());
+    await wait(5000); // 5 saniye bekletme
   }
 
-  ASINSFromLocalStorage = ASINS.slice(currentIndex);
-  localStorage.setItem("ASINS", JSON.stringify(ASINSFromLocalStorage));
+  // searchPerformed = true ise işleme devam etme
+  if (searchPerformed) {
+    // Sayfa içerisindeki dropdown butonunu bulma
+    const dropdownButton = document.querySelector(
+      "#main-content > div.table-responsive.mb-3.card.card-body > table > tbody > tr > td:nth-child(9) > div > div > button.dropdown-item.font-size-sm.text-danger.open-modal-button"
+    );
+
+    if (dropdownButton) {
+      dropdownButton.click();
+    } else {
+      // Dropdown butonu bulunamazsa searchPerformed'i false olarak güncelleme ve sayfayı yenileme
+      localStorage.setItem("searchPerformed", false);
+      // Yeni değeri bir artır
+      const newCurrentIndex = currentIndex + 1;
+
+      // Yeni değeri localStorage'e kaydet
+      localStorage.setItem("currentIndex", newCurrentIndex.toString());
+      location.reload();
+      return;
+    }
+
+    await wait(5000); // 5 saniye bekletme
+  }
+
+  // searchPerformed = true ise işleme devam etme
+  if (searchPerformed) {
+    // Modal içerisindeki butona tıklama
+    const modalButton = document.querySelector(
+      "#modal-confirmation-form > div.modal-footer > button.btn.btn-success.text-white"
+    );
+    modalButton.click();
+
+    // Yeni değeri bir artır
+    const newCurrentIndex = currentIndex + 1;
+
+    // Yeni değeri localStorage'e kaydet
+    localStorage.setItem("currentIndex", newCurrentIndex.toString());
+
+    // searchPerformed değerini false olarak güncelleme
+    localStorage.setItem("searchPerformed", false);
+
+    await wait(5000); // 5 saniye bekletme
+  }
 }
 
-processASINS();
+// 5 saniye bekleyen fonksiyon
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Performansı başlatma
+performSearch();
